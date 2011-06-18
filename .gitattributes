@@ -1,8 +1,8 @@
 * text=auto !eol
 /README.txt -text
-big/__init__.py -text
-big/mysqldb/__init__.py -text
-big/mysqldb/tests/test_db.py -text
+raisin/__init__.py -text
+raisin/mysqldb/__init__.py -text
+raisin/mysqldb/tests/test_db.py -text
 /setup.cfg -text
 /setup.py -text
 /version.txt -text

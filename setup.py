@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '1.0'
+version = '1.1'
 
-setup(name='big.mysqldb',
+setup(name='raisin.mysqldb',
       version=version,
       description="",
       long_description="""\
@@ -15,7 +15,7 @@ setup(name='big.mysqldb',
       url='',
       license='',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-      namespace_packages = ['big'],
+      namespace_packages = ['raisin'],
       include_package_data=True,
       zip_safe=False,
       install_requires=[
