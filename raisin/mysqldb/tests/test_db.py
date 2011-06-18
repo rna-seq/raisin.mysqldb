@@ -1,9 +1,9 @@
 import sys
 import unittest
-from big.mysqldb import DB
-from big.mysqldb import DBS
-from big.mysqldb import close_database_connection
-from big.mysqldb import run_method_using_mysqldb
+from raisin.mysqldb import DB
+from raisin.mysqldb import DBS
+from raisin.mysqldb import close_database_connection
+from raisin.mysqldb import run_method_using_mysqldb
 from MySQLdb.cursors import ProgrammingError
 from MySQLdb.cursors import OperationalError
 
@@ -14,8 +14,8 @@ def get_dummy_db():
     user = None
     passwd = None
     return DB(db, host, port, user, passwd)
-  
-class DBTest(unittest.TestCase):    
+
+class DBTest(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.dummy_db = get_dummy_db()
@@ -23,14 +23,14 @@ class DBTest(unittest.TestCase):
     def tearDown(self):
         unittest.TestCase.tearDown(self)
         close_database_connection()
-        
+
     def test_dummy_db_has_the_attributes(self):
         self.failUnless(self.dummy_db.db == None)
         self.failUnless(self.dummy_db.host == None)
         self.failUnless(self.dummy_db.port == None)
         self.failUnless(self.dummy_db.user == None)
         self.failUnless(self.dummy_db.passwd == None)
-        
+
     def test_dummy_db_does_get_added_to_the_registry(self):
         self.failUnless(DBS[None] == self.dummy_db)
 
