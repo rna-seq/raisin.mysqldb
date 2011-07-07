@@ -35,44 +35,45 @@ class DBTest(unittest.TestCase):
         self.failUnless(DBS[None] == self.dummy_db)
 
     def test_running_method_using_mysqldb(self):
-        def dummy_method():
+        def dummy_method(dbs, confs):
             return "Some result data from the MySQL database"
         method = dummy_method
-        parameters = {}
+        dbs = {}
+        confs = {}
         marker = None
-        result = run_method_using_mysqldb(dummy_method, parameters, marker)
+        result = run_method_using_mysqldb(method, dbs, confs, marker)
         self.failUnless(result == "Some result data from the MySQL database")
 
     def test_running_method_using_mysqldb_with_programmingerror(self):
-        def dummy_method():
+        def dummy_method(dbs, confs):
             raise ProgrammingError
         method = dummy_method
-        parameters = {}
+        dbs = {}
+        confs = {}
         marker = None
-        result = run_method_using_mysqldb(dummy_method, parameters, marker)
+        result = run_method_using_mysqldb(method, dbs, confs, marker)
         self.failUnless(result == marker)
 
     def test_running_method_using_mysqldb_with_operationalerror(self):
-        def dummy_method():
+        def dummy_method(dbs, confs):
             raise OperationalError
         method = dummy_method
-        parameters = {}
+        dbs = {}
+        confs = {}
         marker = None
-        result = run_method_using_mysqldb(dummy_method, parameters, marker)
+        result = run_method_using_mysqldb(method, dbs, confs, marker)
         self.failUnless(result == marker)
 
     def test_running_method_using_mysqldb_with_attributerror(self):
-        def dummy_method():
+        def dummy_method(dbs, confs):
             raise AttributeError
         method = dummy_method
-        parameters = {}
+        dbs = {}
+        confs = {}
         marker = None
         cla, exc, trbk = None, None, None
-        try:
-            run_method_using_mysqldb(dummy_method, parameters, marker)
-        except Exception, e:
-            cla, exc, trbk = sys.exc_info()
-        self.failUnless(cla == AttributeError)
+        result = run_method_using_mysqldb(method, dbs, confs, marker)
+        self.failUnless(result == marker)
 
 # make the test suite.
 def suite():
