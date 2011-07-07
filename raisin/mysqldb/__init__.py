@@ -1,9 +1,22 @@
+"""
+raisin.mysqldb
+
+Implements a wrapper for MySQLdb that takes special care about exceptions.
+
+Contains a class for connecting and executing SQL. Has a method for executing 
+Python methods containing calls to SQL, which hides the implementation details
+of MySQLdb, and especially avoids having to care about the exceptions. 
+Finally, the databases connections are boing closed when exiting.
+"""
+import logging
 import sys
 import traceback
 import atexit
 import MySQLdb
 from MySQLdb.cursors import ProgrammingError
 from MySQLdb.cursors import OperationalError
+
+log = logging.getLogger(__name__)
 
 DBS = {}
 
@@ -41,31 +54,23 @@ class DB:
                                         passwd=self.passwd, 
                                         db=self.db)
         except:
-            print traceback.format_exc()
-            print "Can't establish connection"
+            log.exception("Can't establish connection")
             
     def query(self, sql):        
-        #print "Query SQL database"
         if self.conn is None:
-            print "Connect because the connection is not yet existing"
+            log.debug("Connect because the connection is not yet existing")
             # Not yet connected to the database
             self.connect()
 
         if self.conn is None:
             raise MySQLdb.OperationalError
 
-        # XXX It may be better to use a specialized library for managing the MySQL connections
-        #
-        # Some candidates: PySQLPool, OurSQL, myconnpy
-        #print "Query database: %s" % sql
-
         cursor = self.conn.cursor()
 
         try:
             cursor.execute(sql)
         except (AttributeError, MySQLdb.OperationalError):
-            print traceback.format_exc()
-            print "MySQLdb.OperationalError"
+            log.exception("MySQLdb.OperationalError")
             self.connect()
             if self.conn is None:
                 raise
@@ -73,12 +78,13 @@ class DB:
             try:
                 cursor.execute(sql)
             except:
-                print traceback.format_exc()
-                print "Retry Execution"
+                log.exception("Execution failed")
                 self._executeRetry(self.conn, cursor, sql)
         except ProgrammingError, e:
             if e.args[0] == 1064: # SQL syntax error
-                print sql
+                log.debug("""Execution failed: %s""" % sql)
+            else:
+                log.exception("Execution failed")
             raise
         except:
             raise
@@ -89,10 +95,10 @@ class DB:
             try:
                 return cursor.execute(query)
             except MySQLdb.OperationalError, e:                
-                print traceback.format_exc()
                 if e.args[0] == 2013: # SERVER_LOST error
-                    print conn, str(e), 'ERROR'
+                    log.exception("SERVER_LOST error while retrying execution")
                 else:
+                    log.exception("Retrying execution failed")
                     raise
 
 def run_method_using_mysqldb(method, dbs, confs, marker):
@@ -103,17 +109,21 @@ def run_method_using_mysqldb(method, dbs, confs, marker):
     try:
         data = method(dbs, confs)
     except ProgrammingError, e:
-        if e.args[0] == 1146: # Table does not exist
-            print "ProgrammingError: %s" % e
+        error_type = None
+        try:
+            error_type = e.args[0]
+        except:
+            pass
+        if error_type == 1146: # Table does not exist
+            log.exception("ProgrammingError")
         else:
-            print method, dbs, confs
-            print traceback.format_exc()
+            log.exception("""Error %s""" % error_type)
         return marker
     except OperationalError:
-        print traceback.format_exc()
+        log.exception("OperationalError")
         return marker
     except:
-        print traceback.format_exc()
+        log.exception("Error")
         return marker
-    return data        
+    return data
         
