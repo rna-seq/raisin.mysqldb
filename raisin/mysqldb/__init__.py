@@ -53,7 +53,7 @@ class DB:
                                         user=self.user, 
                                         passwd=self.passwd, 
                                         db=self.db)
-        except:
+        except Exception, err:
             log.exception("Can't establish connection")
             
     def query(self, sql):        
@@ -77,11 +77,12 @@ class DB:
             cursor = self.conn.cursor()
             try:
                 cursor.execute(sql)
-            except:
+            except Exception, err:
                 log.exception("Execution failed")
                 self._executeRetry(self.conn, cursor, sql)
         except ProgrammingError, e:
-            if e.args[0] == 1064: # SQL syntax error
+            error_type = _get_error_type(e)
+            if error_type == 1064: # SQL syntax error
                 log.debug("""Execution failed: %s""" % sql)
             else:
                 log.exception("Execution failed")
@@ -109,11 +110,7 @@ def run_method_using_mysqldb(method, dbs, confs, marker):
     try:
         data = method(dbs, confs)
     except ProgrammingError, e:
-        error_type = None
-        try:
-            error_type = e.args[0]
-        except:
-            pass
+        error_type = _get_error_type(e)
         if error_type == 1146: # Table does not exist
             log.exception("ProgrammingError")
         else:
@@ -127,3 +124,11 @@ def run_method_using_mysqldb(method, dbs, confs, marker):
         return marker
     return data
         
+def _get_error_type(e):
+    error_type = None
+    if hasattr(e, 'args'):
+        try:
+            error_type = e.args[0]
+        except IndexError, err:
+            pass
+    return error_type
