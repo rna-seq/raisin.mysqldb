@@ -1,12 +1,15 @@
-"""
-raisin.mysqldb
+"""Implements a wrapper for MySQLdb that takes special care about exceptions.
 
-Implements a wrapper for MySQLdb that takes special care about exceptions.
+DB: A class for connecting and executing SQL. 
 
-Contains a class for connecting and executing SQL. Has a method for executing 
-Python methods containing calls to SQL, which hides the implementation details
-of MySQLdb, and especially avoids having to care about the exceptions. 
-Finally, the databases connections are boing closed when exiting.
+run_method_using_mysqldb: A method for executing Python methods containing calls to SQL
+
+    * hides the implementation details of MySQLdb
+    
+    * avoids having to care about the exceptions
+    
+Databases connections are boing closed when exiting using atexit.
+
 """
 import logging
 import sys
