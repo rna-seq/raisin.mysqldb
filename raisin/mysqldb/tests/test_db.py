@@ -7,6 +7,7 @@ from raisin.mysqldb import run_method_using_mysqldb
 from MySQLdb.cursors import ProgrammingError
 from MySQLdb.cursors import OperationalError
 
+
 def get_dummy_db():
     db = None
     host = None
@@ -14,6 +15,7 @@ def get_dummy_db():
     user = None
     passwd = None
     return DB(db, host, port, user, passwd)
+
 
 class DBTest(unittest.TestCase):
     def setUp(self):
@@ -75,17 +77,20 @@ class DBTest(unittest.TestCase):
         result = run_method_using_mysqldb(method, dbs, confs, marker)
         self.failUnless(result == marker)
 
+
 # make the test suite.
 def suite():
     loader = unittest.TestLoader()
     testsuite = loader.loadTestsFromTestCase(DBTest)
     return testsuite
 
+
 # Make the test suite; run the tests.
 def test_main():
     testsuite = suite()
     runner = unittest.TextTestRunner(sys.stdout, verbosity=2)
     result = runner.run(testsuite)
+
 
 if __name__ == "__main__":
     test_main()

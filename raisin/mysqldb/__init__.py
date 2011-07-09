@@ -1,13 +1,13 @@
 """Implements a wrapper for MySQLdb that takes special care about exceptions.
 
-DB: A class for connecting and executing SQL. 
+DB: A class for connecting and executing SQL.
 
 run_method_using_mysqldb: A method for executing Python methods containing calls to SQL
 
     * hides the implementation details of MySQLdb
-    
+
     * avoids having to care about the exceptions
-    
+
 Databases connections are boing closed when exiting using atexit.
 
 """
@@ -23,14 +23,16 @@ log = logging.getLogger(__name__)
 
 DBS = {}
 
-# Play nice and close the database connection when exiting    
+
+# Play nice and close the database connection when exiting
 def close_database_connection():
     for key, db in DBS.items():
         if not db is None:
             if not db.conn is None:
                 db.conn.close()
-                    
-atexit.register(close_database_connection)    
+
+atexit.register(close_database_connection)
+
 
 class DB:
     """
@@ -45,21 +47,21 @@ class DB:
         self.port = port
         self.user = user
         self.passwd = passwd
-        
+
         # Register db so it can be closed upon exit
         DBS[db] = self
-        
+
     def connect(self):
         try:
-            self.conn = MySQLdb.connect(host = self.host, 
-                                        port=self.port, 
-                                        user=self.user, 
-                                        passwd=self.passwd, 
+            self.conn = MySQLdb.connect(host=self.host,
+                                        port=self.port,
+                                        user=self.user,
+                                        passwd=self.passwd,
                                         db=self.db)
         except Exception, err:
             log.exception("Can't establish connection")
-            
-    def query(self, sql):        
+
+    def query(self, sql):
         if self.conn is None:
             log.debug("Connect because the connection is not yet existing")
             # Not yet connected to the database
@@ -85,7 +87,8 @@ class DB:
                 self._executeRetry(self.conn, cursor, sql)
         except ProgrammingError, e:
             error_type = _get_error_type(e)
-            if error_type == 1064: # SQL syntax error
+            # SQL syntax error
+            if error_type == 1064:
                 log.debug("""Execution failed: %s""" % sql)
             else:
                 log.exception("Execution failed")
@@ -98,12 +101,14 @@ class DB:
         while 1:
             try:
                 return cursor.execute(query)
-            except MySQLdb.OperationalError, e:                
-                if e.args[0] == 2013: # SERVER_LOST error
+            except MySQLdb.OperationalError, e:
+                # SERVER_LOST error
+                if e.args[0] == 2013:
                     log.exception("SERVER_LOST error while retrying execution")
                 else:
                     log.exception("Retrying execution failed")
                     raise
+
 
 def run_method_using_mysqldb(method, dbs, confs, marker):
     """
@@ -114,7 +119,8 @@ def run_method_using_mysqldb(method, dbs, confs, marker):
         data = method(dbs, confs)
     except ProgrammingError, e:
         error_type = _get_error_type(e)
-        if error_type == 1146: # Table does not exist
+        # Table does not exist
+        if error_type == 1146:
             log.exception("ProgrammingError")
         else:
             log.exception("""Error %s""" % error_type)
@@ -126,7 +132,8 @@ def run_method_using_mysqldb(method, dbs, confs, marker):
         log.exception("Error")
         return marker
     return data
-        
+
+
 def _get_error_type(e):
     error_type = None
     if hasattr(e, 'args'):
