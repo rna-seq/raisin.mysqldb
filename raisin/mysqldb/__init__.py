@@ -12,8 +12,6 @@ Databases connections are boing closed when exiting using atexit.
 
 """
 import logging
-import sys
-import traceback
 import atexit
 import MySQLdb
 from MySQLdb.cursors import ProgrammingError
@@ -58,7 +56,7 @@ class DB:
                                         user=self.user,
                                         passwd=self.passwd,
                                         db=self.db)
-        except Exception, err:
+        except Exception:
             log.exception("Can't establish connection")
 
     def query(self, sql):
@@ -82,7 +80,7 @@ class DB:
             cursor = self.conn.cursor()
             try:
                 cursor.execute(sql)
-            except Exception, err:
+            except Exception:
                 log.exception("Execution failed")
                 self._executeRetry(self.conn, cursor, sql)
         except ProgrammingError, e:
@@ -139,6 +137,6 @@ def _get_error_type(e):
     if hasattr(e, 'args'):
         try:
             error_type = e.args[0]
-        except IndexError, err:
+        except IndexError:
             pass
     return error_type
