@@ -10,10 +10,10 @@ from MySQLdb.cursors import OperationalError
 
 def get_dummy_db():
     database = None
-    connection={'host': None,
-                'port': None,
-                'user': None,
-                'passwd': None}
+    connection = {'host': None,
+                  'port': None,
+                  'user': None,
+                  'passwd': None}
     return DB(database, connection)
 
 
