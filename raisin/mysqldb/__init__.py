@@ -2,7 +2,7 @@
 
 DB: A class for connecting and executing SQL.
 
-run_method_using_mysqldb: A method for executing Python methods containing calls to SQL
+run_method_using_mysqldb: A proxy method for methods calling MySQLDB.
 
     * hides the implementation details of MySQLdb
 
@@ -17,17 +17,17 @@ import MySQLdb
 from MySQLdb.cursors import ProgrammingError
 from MySQLdb.cursors import OperationalError
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 DBS = {}
 
 
-# Play nice and close the database connection when exiting
 def close_database_connection():
-    for key, db in DBS.items():
-        if not db is None:
-            if not db.conn is None:
-                db.conn.close()
+    """Play nice and close the database connection when exiting"""
+    for database in DBS.values():
+        if not database is None:
+            if not database.conn is None:
+                database.conn.close()
 
 atexit.register(close_database_connection)
 
@@ -39,15 +39,15 @@ class DB:
 
     conn = None
 
-    def __init__(self, db, host, port, user, passwd):
-        self.db = db
+    def __init__(self, database, host, port, user, passwd):
+        self.database = database
         self.host = host
         self.port = port
         self.user = user
         self.passwd = passwd
 
-        # Register db so it can be closed upon exit
-        DBS[db] = self
+        # Register database so it can be closed upon exit
+        DBS[database] = self
 
     def connect(self):
         try:
@@ -55,13 +55,13 @@ class DB:
                                         port=self.port,
                                         user=self.user,
                                         passwd=self.passwd,
-                                        db=self.db)
+                                        db=self.database)
         except Exception:
-            log.exception("Can't establish connection")
+            LOG.exception("Can't establish connection")
 
     def query(self, sql):
         if self.conn is None:
-            log.debug("Connect because the connection is not yet existing")
+            LOG.debug("Connect because the connection is not yet existing")
             # Not yet connected to the database
             self.connect()
 
@@ -73,7 +73,7 @@ class DB:
         try:
             cursor.execute(sql)
         except (AttributeError, MySQLdb.OperationalError):
-            log.exception("MySQLdb.OperationalError")
+            LOG.exception("MySQLdb.OperationalError")
             self.connect()
             if self.conn is None:
                 raise
@@ -81,15 +81,15 @@ class DB:
             try:
                 cursor.execute(sql)
             except Exception:
-                log.exception("Execution failed")
+                LOG.exception("Execution failed")
                 self._executeRetry(self.conn, cursor, sql)
         except ProgrammingError, e:
             error_type = _get_error_type(e)
             # SQL syntax error
             if error_type == 1064:
-                log.debug("""Execution failed: %s""" % sql)
+                LOG.debug("""Execution failed: %s""" % sql)
             else:
-                log.exception("Execution failed")
+                LOG.exception("Execution failed")
             raise
         except:
             raise
@@ -102,9 +102,9 @@ class DB:
             except MySQLdb.OperationalError, e:
                 # SERVER_LOST error
                 if e.args[0] == 2013:
-                    log.exception("SERVER_LOST error while retrying execution")
+                    LOG.exception("SERVER_LOST error while retrying execution")
                 else:
-                    log.exception("Retrying execution failed")
+                    LOG.exception("Retrying execution failed")
                     raise
 
 
@@ -119,15 +119,15 @@ def run_method_using_mysqldb(method, dbs, confs, marker):
         error_type = _get_error_type(e)
         # Table does not exist
         if error_type == 1146:
-            log.exception("ProgrammingError")
+            LOG.exception("ProgrammingError")
         else:
-            log.exception("""Error %s""" % error_type)
+            LOG.exception("""Error %s""" % error_type)
         return marker
     except OperationalError:
-        log.exception("OperationalError")
+        LOG.exception("OperationalError")
         return marker
     except:
-        log.exception("Error")
+        LOG.exception("Error")
         return marker
     return data
 
