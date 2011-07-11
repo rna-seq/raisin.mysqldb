@@ -40,6 +40,7 @@ class DB:
     conn = None
 
     def __init__(self, database, connection):
+        """Register the database."""
         self.database = database
         self.connection = connection
 
@@ -47,6 +48,7 @@ class DB:
         DBS[self.database] = self
 
     def connect(self):
+        """Connect to the MySQL database"""
         try:
             self.conn = MySQLdb.connect(host=self.connection['server'],
                                         port=int(self.connection['port']),
@@ -57,6 +59,7 @@ class DB:
             LOG.exception("Can't establish connection")
 
     def query(self, sql):
+        """Query the MySQL database"""
         if self.conn is None:
             LOG.debug("Connect because the connection is not yet existing")
             # Not yet connected to the database
@@ -78,10 +81,19 @@ class DB:
             try:
                 cursor.execute(sql)
             except Exception:
-                LOG.exception("Execution failed")
-                self._executeRetry(self.conn, cursor, sql)
-        except ProgrammingError, e:
-            error_type = _get_error_type(e)
+                LOG.exception("Execution failed, trying again.")
+                try:
+                    cursor.execute(sql)
+                except MySQLdb.OperationalError, err:
+                    error_type = _get_error_type(err)
+                    # SERVER_LOST error
+                    if error_type == 2013:
+                        LOG.exception("SERVER_LOST error while retrying execution")
+                    else:
+                        LOG.exception("Retrying execution failed")
+                    raise
+        except ProgrammingError, err:
+            error_type = _get_error_type(err)
             # SQL syntax error
             if error_type == 1064:
                 LOG.debug("""Execution failed: %s""" % sql)
@@ -92,18 +104,6 @@ class DB:
             raise
         return cursor
 
-    def _executeRetry(self, conn, cursor, query):
-        while 1:
-            try:
-                return cursor.execute(query)
-            except MySQLdb.OperationalError, e:
-                # SERVER_LOST error
-                if e.args[0] == 2013:
-                    LOG.exception("SERVER_LOST error while retrying execution")
-                else:
-                    LOG.exception("Retrying execution failed")
-                    raise
-
 
 def run_method_using_mysqldb(method, dbs, confs, marker):
     """
@@ -112,8 +112,8 @@ def run_method_using_mysqldb(method, dbs, confs, marker):
     """
     try:
         data = method(dbs, confs)
-    except ProgrammingError, e:
-        error_type = _get_error_type(e)
+    except ProgrammingError, err:
+        error_type = _get_error_type(err)
         # Table does not exist
         if error_type == 1146:
             LOG.exception("ProgrammingError")
@@ -129,11 +129,11 @@ def run_method_using_mysqldb(method, dbs, confs, marker):
     return data
 
 
-def _get_error_type(e):
-    error_type = None
-    if hasattr(e, 'args'):
+def _get_error_type(err):
+    """Get the error type from the exception in a safe way"""
+    if hasattr(err, 'args'):
         try:
-            error_type = e.args[0]
+            error_type = err.args[0]
         except IndexError:
-            pass
+            error_type = None
     return error_type
