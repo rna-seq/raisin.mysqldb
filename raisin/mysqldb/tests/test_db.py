@@ -9,12 +9,12 @@ from MySQLdb.cursors import OperationalError
 
 
 def get_dummy_db():
-    db = None
-    host = None
-    port = None
-    user = None
-    passwd = None
-    return DB(db, host, port, user, passwd)
+    database = None
+    connection={'host': None,
+                'port': None,
+                'user': None,
+                'passwd': None}
+    return DB(database, connection)
 
 
 class DBTest(unittest.TestCase):
@@ -27,11 +27,11 @@ class DBTest(unittest.TestCase):
         close_database_connection()
 
     def test_dummy_db_has_the_attributes(self):
-        self.failUnless(self.dummy_db.db == None)
-        self.failUnless(self.dummy_db.host == None)
-        self.failUnless(self.dummy_db.port == None)
-        self.failUnless(self.dummy_db.user == None)
-        self.failUnless(self.dummy_db.passwd == None)
+        self.failUnless(self.dummy_db.database == None)
+        self.failUnless(self.dummy_db.connection == {'host': None,
+                                                     'port': None,
+                                                     'user': None,
+                                                     'passwd': None})
 
     def test_dummy_db_does_get_added_to_the_registry(self):
         self.failUnless(DBS[None] == self.dummy_db)
