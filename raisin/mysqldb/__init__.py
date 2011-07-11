@@ -39,22 +39,19 @@ class DB:
 
     conn = None
 
-    def __init__(self, database, host, port, user, passwd):
+    def __init__(self, database, connection):
         self.database = database
-        self.host = host
-        self.port = port
-        self.user = user
-        self.passwd = passwd
+        self.connection = connection
 
         # Register database so it can be closed upon exit
-        DBS[database] = self
+        DBS[self.database] = self
 
     def connect(self):
         try:
-            self.conn = MySQLdb.connect(host=self.host,
-                                        port=self.port,
-                                        user=self.user,
-                                        passwd=self.passwd,
+            self.conn = MySQLdb.connect(host=self.connection['server'],
+                                        port=int(self.connection['port']),
+                                        user=self.connection['user'],
+                                        passwd=self.connection['password'],
                                         db=self.database)
         except Exception:
             LOG.exception("Can't establish connection")
