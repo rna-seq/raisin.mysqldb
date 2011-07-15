@@ -88,7 +88,7 @@ class DB:
                     error_type = _get_error_type(err)
                     # SERVER_LOST error
                     if error_type == 2013:
-                        LOG.exception("SERVER_LOST error while retrying execution")
+                        LOG.exception("SERVER_LOST while retrying execution")
                     else:
                         LOG.exception("Retrying execution failed")
                     raise
