@@ -58,7 +58,7 @@ class DB:
         except Exception:
             LOG.exception("Can't establish connection")
 
-    def query(self, sql):
+    def query(self, sql, args=None):
         """Query the MySQL database"""
         if self.conn is None:
             LOG.debug("Connect because the connection is not yet existing")
@@ -71,7 +71,7 @@ class DB:
         cursor = self.conn.cursor()
 
         try:
-            cursor.execute(sql)
+            cursor.execute(sql, args)
         except (AttributeError, MySQLdb.OperationalError):
             LOG.exception("MySQLdb.OperationalError")
             self.connect()
@@ -79,11 +79,11 @@ class DB:
                 raise
             cursor = self.conn.cursor()
             try:
-                cursor.execute(sql)
+                cursor.execute(sql, args)
             except Exception:
                 LOG.exception("Execution failed, trying again.")
                 try:
-                    cursor.execute(sql)
+                    cursor.execute(sql, args)
                 except MySQLdb.OperationalError, err:
                     error_type = _get_error_type(err)
                     # SERVER_LOST error
