@@ -1,0 +1,8 @@
+/*.pyc
+/*.pyo
+raisin/*.pyc
+raisin/*.pyo
+raisin/mysqldb/*.pyc
+raisin/mysqldb/*.pyo
+raisin/mysqldb/tests/*.pyc
+raisin/mysqldb/tests/*.pyo
