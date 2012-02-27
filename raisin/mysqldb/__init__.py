@@ -27,8 +27,11 @@ def close_database_connection():
     for database in DBS.values():
         if not database is None:
             if not database.conn is None:
-                database.conn.close()
-
+                # Database connection may have been closed already
+                try:
+                    database.conn.close()
+                except ProgrammingError:
+                    pass
 atexit.register(close_database_connection)
 
 
