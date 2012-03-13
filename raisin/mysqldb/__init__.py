@@ -59,7 +59,7 @@ class DB:
                                         passwd=self.connection['password'],
                                         db=self.database)
         except Exception:
-            LOG.exception("Can't establish connection")
+            LOG.exception("Can't establish connection to %s" % self.database)
 
     def query(self, sql, args=None):
         """Query the MySQL database"""
