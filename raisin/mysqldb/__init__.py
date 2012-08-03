@@ -61,7 +61,7 @@ class DB:
         except:
             import sys
             exc_info = sys.exc_info()
-            print exc_info 
+            print exc_info
             LOG.exception("Can't establish connection to %s (%s)" % (self.database, exc_info))
 
     def query(self, sql, args=None):
